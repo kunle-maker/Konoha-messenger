@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Character - Naruto Char Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* Your existing CSS remains the same */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+        --primary: #0d1117;
+        --secondary: #161b22;
+        --accent: #58a6ff;
+        --text-primary: #f0f6fc;
+        --text-secondary: #8b949e;
+        --user-msg: #238636;
+        --bot-msg: #21262d;
+        --online: #3fb950;
+        --offline: #8b949e;
+        --border: #30363d;
+        --theme-name: 'default';
+    }
+
+    :root[data-theme="light"] {
+        --primary: #f0f6fc;
+        --secondary: #c9d1d9;
+        --accent: #0366d6;
+        --text-primary: #0d1117;
+        --text-secondary: #6e7681;
+        --user-msg: #2ea043;
+        --bot-msg: #eaeef2;
+        --online: #3fb950;
+        --offline: #8b949e;
+        --border: #d0d7de;
+    }
+
+    :root[data-theme="akatsuki"] {
+        --primary: #2a0c0c;
+        --secondary: #451717;
+        --accent: #c41e3a;
+        --text-primary: #ffffff;
+        --text-secondary: #d9a9a9;
+        --user-msg: #c41e3a;
+        --bot-msg: #3a1a1a;
+        --online: #c41e3a;
+        --offline: #8b949e;
+        --border: #5c2a2a;
+    }
+
+    body {
+        background-color: var(--primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        /* Removed overflow: hidden to allow scrolling */
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        /* Changed from height: 100% to min-height for better scrolling */
+        min-height: 100vh;
+    }
+
+    header {
+        text-align: center;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #1a1f29 0%, #0d1117 100%);
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .theme-selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .theme-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .theme-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .theme-default {
+        background: linear-gradient(135deg, #0d1117 0%, #58a6ff 100%);
+    }
+
+    .theme-light {
+        background: linear-gradient(135deg, #f0f6fc 0%, #0366d6 100%);
+    }
+
+    .theme-akatsuki {
+        background: linear-gradient(135deg, #2a0c0c 0%, #c41e3a 100%);
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .logo img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--accent);
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(90deg, #ff9a3d, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        margin-top: 5px;
+        font-size: 1rem;
+    }
+
+    /* Chat container styles - UPDATED FOR BETTER SCROLLING */
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        /* Changed to use max-height instead of height */
+        max-height: 70vh;
+        min-height: 500px;
+        background: var(--secondary);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        /* Added flex-grow to allow expansion */
+        flex-grow: 1;
+    }
+
+    .chat-header {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background: linear-gradient(90deg, #1a1f29 0%, #0d1117 100%);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .back-button {
+        background: none;
+        border: none;
+        color: var(--accent);
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-right: 15px;
+        padding: 5px;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+    }
+
+    .back-button:hover {
+        background: rgba(88, 166, 255, 0.2);
+    }
+
+    .chat-header img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--accent);
+        margin-right: 15px;
+    }
+
+    .chat-header-info {
+        flex: 1;
+    }
+
+    .chat-header-info h2 {
+        font-size: 1.3rem;
+        margin-bottom: 3px;
+    }
+
+    .chat-header-info p {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        /* Added min-height to ensure messages area is always visible */
+        min-height: 200px;
+    }
+
+    .message {
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        line-height: 1.4;
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+    .message.user {
+        background: var(--user-msg);
+        align-self: flex-end;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.bot {
+        background: var(--bot-msg);
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+        border: 1px solid var(--border);
+    }
+
+    .message img.preview {
+        max-width: 200px;
+        border-radius: 8px;
+        margin-top: 8px;
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-top: 5px;
+        text-align: right;
+    }
+    
+    .bold {
+        font-weight: bold;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+
+    .strikethrough {
+        text-decoration: line-through;
+    }
+
+    .monospace {
+        font-family: monospace;
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+
+    .code-block {
+        font-family: monospace;
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        margin: 5px 0;
+        overflow-x: auto;
+        display: block;
+        white-space: pre-wrap;
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 10px 15px;
+        background: var(--bot-msg);
+        border-radius: 18px;
+        align-self: flex-start;
+        margin-bottom: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background: var(--text-secondary);
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: typing 1.2s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    .chat-input-container {
+        display: flex;
+        padding: 15px;
+        background: var(--primary);
+        border-top: 1px solid var(--border);
+        align-items: flex-end;
+        flex-shrink: 0;
+    }
+
+    .file-upload {
+        background: var(--secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-right: 10px;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+    .file-upload:hover {
+        background: var(--accent);
+        color: white;
+    }
+
+    .file-upload input {
+        display: none;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        position: relative;
+        margin-right: 10px;
+    }
+
+    .chat-input {
+        width: 100%;
+        min-height: 45px;
+        max-height: 150px;
+        padding: 12px 15px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--secondary);
+        color: var(--text-primary);
+        font-size: 1rem;
+        resize: none;
+        overflow-y: auto;
+        line-height: 1.4;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    
+    .new-chat-button {
+        background: none;
+        border: none;
+        color: var(--accent);
+        font-size: 1.1rem;
+        cursor: pointer;
+        margin-left: 10px;
+        padding: 8px;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+    .new-chat-button:hover {
+        background: rgba(88, 166, 255, 0.2);
+    }
+
+    .send-button {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+    .send-button:hover {
+        background: #3d8eff;
+    }
+
+    .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: var(--secondary);
+        color: var(--text-primary);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-left: 4px solid var(--accent);
+        display: none;
+        z-index: 1000;
+        max-width: 300px;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2rem;
+        }
+        
+        .message {
+            max-width: 85%;
+        }
+
+        .theme-selector {
+            position: static;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        /* Mobile-specific adjustments */
+        .container {
+            padding: 10px;
+        }
+        
+        .chat-container {
+            max-height: 65vh;
+            min-height: 400px;
+        }
+        
+        .chat-messages {
+            padding: 15px;
+        }
+        
+        .chat-header {
+            padding: 12px 15px;
+        }
+        
+        .chat-input-container {
+            padding: 12px;
+        }
+    }
+
+    /* Animation for chat items */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <header id="main-header">
+            <div class="logo">
+                <img src="https://files.catbox.moe/oyce2b.jpg" alt="Konohagakure">
+                <div>
+                    <h1>Naruto Char Chat</h1>
+                    <p class="subtitle">Message your favorite Naruto characters</p>
+                </div>
+            </div>
+            <div class="theme-selector">
+                <button class="theme-btn theme-default" onclick="changeTheme('default')" title="Default Theme"></button>
+                <button class="theme-btn theme-light" onclick="changeTheme('light')" title="Light Theme"></button>
+                <button class="theme-btn theme-akatsuki" onclick="changeTheme('akatsuki')" title="Akatsuki Theme"></button>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="chat-container" id="chat-window">
+            <div class="chat-header">
+                <button class="back-button" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <img id="chat-character-img" src="" alt="Character">
+                <div class="chat-header-info">
+                    <h2 id="chat-character-name">Character Name</h2>
+                    <p id="chat-character-status">Online</p>
+                </div>
+                <button class="new-chat-button" onclick="newConversation()" title="Start new conversation">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            <div class="typing-indicator" id="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="chat-input-container">
+                <label class="file-upload">
+                    <i class="fas fa-paperclip"></i>
+                    <input type="file" id="file-upload" accept="image/*">
+                </label>
+                <div class="input-wrapper">
+                    <textarea class="chat-input" id="message-input" placeholder="Type a message..." rows="1"></textarea>
+                </div>
+                <button class="send-button" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="notification" id="notification">
+            <div id="notification-text"></div>
+        </div>
+    </div>
+
+    <script>
+        // Character data
+        const characters = {
+            naruto: {
+                name: "Naruto Uzumaki",
+                image: "https://k.top4top.io/p_3520g3h5z0.jpg",
+                status: "Online",
+                greeting: "Believe it! I'm gonna be Hokage one day! What's up?"
+            },
+            sasuke: {
+                name: "Sasuke Uchiha",
+                image: "https://i.top4top.io/p_3520gdv1b1.jpg",
+                status: "Online",
+                greeting: "What do you want? I don't have time for pointless conversations."
+            },
+            sakura: {
+                name: "Sakura Haruno",
+                image: "https://files.catbox.moe/pi5bwl.jpg",
+                status: "Online",
+                greeting: "Hello! I've been training with Lady Tsunade. How can I help you?"
+            },
+            kakashi: {
+                name: "Kakashi Hatake",
+                image: "https://k.top4top.io/p_3520zott33.jpg",
+                status: "Online",
+                greeting: "I'm currently reading Make-Out Paradise. What's up?"
+            },
+            jiraiya: {
+                name: "Jiraiya",
+                image: "https://files.catbox.moe/a33mvp.jpg",
+                status: "Online",
+                greeting: "I'm gathering material for my next novel. What can I do for you?"
+            },
+            gaara: {
+                name: "Gaara",
+                image: "https://f.top4top.io/p_3520uf1ve1.jpg",
+                status: "Online",
+                greeting: "I am the Kazekage of the Sand Village. What do you need?"
+            },
+            guy: {
+                name: "Might Guy",
+                image: "https://files.catbox.moe/o8lzi5.jpg",
+                status: "Online",
+                greeting: "YOUTH! The power of youth burns within me! How can I help you today?"
+            },
+            hashirama: {
+                name: "Hashirama Senju",
+                image: "https://files.catbox.moe/227y3g.jpg",
+                status: "Online",
+                greeting: "I am the First Hokage. I founded this village for peace. What brings you here?"
+            },
+            hinata: {
+                name: "Hinata Hyuga",
+                image: "https://files.catbox.moe/nddf0e.jpg",
+                status: "Online",
+                greeting: "H-hello... N-Naruto-kun inspires me to be better. How can I help you?"
+            },
+            itachi: {
+                name: "Itachi Uchiha",
+                image: "https://files.catbox.moe/yyb36d.jpeg",
+                status: "Online",
+                greeting: "People live their lives bound by what they accept as correct. What is it you wish to discuss?"
+            },
+            konan: {
+                name: "Konan",
+                image: "https://files.catbox.moe/66m4tx.jpg",
+                status: "Online",
+                greeting: "I am Konan of the Akatsuki. The paper angel will guide our conversation."
+            },
+            tenten: {
+                name: "Tenten",
+                image: "https://e.top4top.io/p_3520ksevn2.jpg",
+                status: "Online",
+                greeting: "I specialize in ninja tools. If you need weapons or strategies, I'm the one to ask. What do you need?"
+            },
+            zabuza: {
+                name: "Zabuza Momochi",
+                image: "https://c.top4top.io/p_3520vixt50.jpg",
+                status: "Online",
+                greeting: "I am the Demon of the Hidden Mist. Speak quickly, or you might not leave here alive."
+            },
+            kisame: {
+                name: "Kisame Hoshigaki",
+                image: "https://h.top4top.io/p_3520npux85.jpg",
+                status: "Online",
+                greeting: "They call me the Monster of the Hidden Mist. Samehada and I are always hungry. What brings you here?"
+            },
+            yamato: {
+                name: "Yamato",
+                image: "https://d.top4top.io/p_3520jk3d41.jpg",
+                status: "Online",
+                greeting: "I use the Wood Release to maintain control. Stay calm and tell me what you're looking for."
+            },
+            temari: {
+                name: "Temari",
+                image: "https://f.top4top.io/p_3520ltzhb3.jpg",
+                status: "Online",
+                greeting: "With my giant fan, I can summon fierce winds to cut down my enemies. What do you need from me?"
+            },
+            deidara: {
+                name: "Deidara",
+                image: "https://d.top4top.io/p_352083w1k0.jpg",
+                status: "Online",
+                greeting: "Art is an explosion! Hm! So, tell me—what masterpiece shall I create for you today?"
+            },
+            haku: {
+                name: "Haku",
+                image: "https://g.top4top.io/p_35202fk7r4.jpg",
+                status: "Online",
+                greeting: "I fight to protect the one precious to me. My ice mirrors are ready—how can I help you?"
+            },
+            madara: {
+                name: "Madara Uchiha",
+                image: "https://l.top4top.io/p_35208xb0d4.jpg",
+                status: "Online",
+                greeting: "Wake up to reality! Nothing ever goes as planned in this accursed world. What do you want?"
+            },
+            minato: {
+                name: "Minato Namikaze",
+                image: "https://files.catbox.moe/c42l39.jpg",
+                status: "Online",
+                greeting: "I am the Fourth Hokage. I will protect the village with my Flying Thunder God Technique. How can I assist you?"
+            },
+            nagato: {
+                name: "Nagato",
+                image: "https://files.catbox.moe/lvbt8i.jpg",
+                status: "Online",
+                greeting: "I seek to create a world without war and suffering. What is your perspective on peace?"
+            },
+            neji: {
+                name: "Neji Hyuga",
+                image: "https://b.top4top.io/p_3520q9to26.jpg",
+                status: "Online",
+                greeting: "Destiny is not something to be changed, but understood. What do you wish to discuss?"
+            },
+            obito: {
+                name: "Obito Uchiha",
+                image: "https://c.top4top.io/p_3520ckn597.jpg",
+                status: "Online",
+                greeting: "In this world, wherever there is light, there are also shadows. What brings you here?"
+            },
+            orochimaru: {
+                name: "Orochimaru",
+                image: "https://d.top4top.io/p_35202h9238.jpg",
+                status: "Online",
+                greeting: "I seek to learn all jutsu and understand the truth of this world. Do you have interesting knowledge to share?"
+            },
+            rocklee: {
+                name: "Rock Lee",
+                image: "https://a.top4top.io/p_3520kvxfu5.jpg",
+                status: "Online",
+                greeting: "A dropout will beat a genius through hard work! How can I inspire you today?"
+            },
+            shikamaru: {
+                name: "Shikamaru Nara",
+                image: "https://e.top4top.io/p_3520vkvhl9.jpg",
+                status: "Online",
+                greeting: "What a drag... but I suppose I can chat for a while. What do you want to talk about?"
+            },
+            tobirama: {
+                name: "Tobirama Senju",
+                image: "https://files.catbox.moe/b5orf7.jpg",
+                status: "Online",
+                greeting: "I am the Second Hokage. I created many jutsu to protect the village and maintain order. State your business."
+            },
+            tsunade: {
+                name: "Tsunade",
+                image: "https://files.catbox.moe/jzo6ut.jpg",
+                status: "Online",
+                greeting: "As the Fifth Hokage, I don't have time for games. Make it quick."
+            } 
+        };
+
+        let currentCharacter = null;
+        let currentSessionId = null;
+        let currentTheme = localStorage.getItem('theme') || 'default';
+
+        // Initialize theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        // Initialize chat with character from URL parameter
+        function initChat() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const characterId = urlParams.get('character');
+            
+            if (characterId && characters[characterId]) {
+                openChat(characterId);
+            } else {
+                // If no valid character, redirect back to main page
+                window.location.href = 'index.html';
+            }
+            
+            // Auto-resize textarea
+            const textarea = document.getElementById('message-input');
+            textarea.addEventListener('input', autoResizeTextarea);
+        }
+
+        // Auto-resize textarea based on content
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('message-input');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+        }
+
+        // Change theme function
+        function changeTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            currentTheme = theme;
+            showNotification(`Theme changed to ${theme} mode`);
+        }
+        
+        // Start a new conversation (clear session)
+        function newConversation() {
+            if (currentCharacter && confirm("Start a new conversation? This will clear the current chat history.")) {
+                // Clear session and local storage
+                localStorage.removeItem(`session_${currentCharacter}`);
+                localStorage.removeItem(`chat_${currentCharacter}`);
+                
+                // Generate new session ID
+                currentSessionId = 'session_' + Date.now();
+                localStorage.setItem(`session_${currentCharacter}`, currentSessionId);
+                
+                // Reload the chat
+                const chatMessages = document.getElementById("chat-messages");
+                chatMessages.innerHTML = "";
+                
+                // Get fresh greeting
+                const character = characters[currentCharacter];
+                addMessage(character.greeting, "bot");
+                
+                showNotification("Started new conversation");
+            }
+        } 
+
+        // Show notification
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        // File upload handling
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                
+                if (file.type.match('image.*')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        // Add image message to chat
+                        addMessage('', 'user', null, false, e.target.result);
+                        
+                        // Simulate character response to image
+                        simulateTyping();
+                        setTimeout(() => {
+                            addMessage("Interesting image! What would you like to discuss about it?", "bot");
+                        }, 1500);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    showNotification('Please select an image file');
+                }
+            }
+        });
+
+        // Simulate typing indicator
+        function simulateTyping() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'flex';
+            
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+            }, 1500);
+        }
+
+        // Load chat history for a character
+        function loadChatHistory(characterId) {
+            const history = JSON.parse(localStorage.getItem(`chat_${characterId}`)) || [];
+            const chatMessages = document.getElementById("chat-messages");
+            chatMessages.innerHTML = "";
+
+            history.forEach(msg => {
+                addMessage(msg.text, msg.sender, msg.time, false, msg.image);
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Save message for a character
+        function saveMessage(characterId, text, sender, time, image = null) {
+            const history = JSON.parse(localStorage.getItem(`chat_${characterId}`)) || [];
+            history.push({ text, sender, time, image });
+            localStorage.setItem(`chat_${characterId}`, JSON.stringify(history));
+        }
+
+        // Open chat with a character
+function openChat(characterId) {
+    currentCharacter = characterId;
+    const character = characters[characterId];
+
+    // Update chat header
+    document.getElementById("chat-character-img").src = character.image;
+    document.getElementById("chat-character-name").textContent = character.name;
+    document.getElementById("chat-character-status").textContent = character.status;
+
+    // Load session or create new one
+    currentSessionId = localStorage.getItem(`session_${characterId}`);
+    if (!currentSessionId) {
+        currentSessionId = 'session_' + Date.now();
+        localStorage.setItem(`session_${characterId}`, currentSessionId);
+    }
+
+    // Load chat history or show greeting
+    const history = JSON.parse(localStorage.getItem(`chat_${characterId}`)) || [];
+    const chatMessages = document.getElementById("chat-messages");
+    chatMessages.innerHTML = "";
+
+    if (history.length > 0) {
+        history.forEach(msg => {
+            addMessage(msg.text, msg.sender, msg.time, false, msg.image);
+        });
+    } else {
+        addMessage(character.greeting, "bot");
+    }
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Send message
+function sendMessage() {
+    const input = document.getElementById("message-input");
+    const text = input.value.trim();
+
+    if (text === "") return;
+
+    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    addMessage(text, "user", time);
+    saveMessage(currentCharacter, text, "user", time);
+
+    input.value = "";
+    autoResizeTextarea();
+
+    simulateTyping();
+
+    // Fake bot reply after 1.5s
+    setTimeout(() => {
+        const botReply = "Got it! Let's keep talking.";
+        const replyTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        addMessage(botReply, "bot", replyTime);
+        saveMessage(currentCharacter, botReply, "bot", replyTime);
+    }, 1500);
+}
+
+// Add message to chat window
+function addMessage(text, sender, time = null, save = true, image = null) {
+    const chatMessages = document.getElementById("chat-messages");
+    const messageEl = document.createElement("div");
+    messageEl.classList.add("message", sender);
+
+    if (text) {
+        messageEl.textContent = text;
+    }
+
+    if (image) {
+        const imgEl = document.createElement("img");
+        imgEl.src = image;
+        imgEl.classList.add("preview");
+        messageEl.appendChild(imgEl);
+    }
+
+    if (time) {
+        const timeEl = document.createElement("div");
+        timeEl.classList.add("message-time");
+        timeEl.textContent = time;
+        messageEl.appendChild(timeEl);
+    }
+
+    chatMessages.appendChild(messageEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    if (save && currentCharacter) {
+        saveMessage(currentCharacter, text, sender, time, image);
+    }
+}
+
+// Go back (dummy redirect)
+function goBack() {
+    window.location.href = 'index.html';
+}
+
+        // Add a message to the chat
+        function addMessage(text, sender, customTime = null, save = true, image = null) {
+            const chatMessages = document.getElementById("chat-messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", sender);
+
+            if (text) {
+                const messageText = document.createElement("div");
+                // Apply formatting to the message
+                messageText.innerHTML = formatMessage(text);
+                messageDiv.appendChild(messageText);
+            }
+
+            if (image) {
+                const imgElement = document.createElement("img");
+                imgElement.src = image;
+                imgElement.classList.add("preview");
+                messageDiv.appendChild(imgElement);
+            }
+
+            const messageTime = document.createElement("div");
+            messageTime.classList.add("message-time");
+
+            const time = customTime || getCurrentTime();
+            messageTime.textContent = time;
+            messageDiv.appendChild(messageTime);
+
+            chatMessages.appendChild(messageDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Save only if allowed
+            if (save && currentCharacter) {
+                saveMessage(currentCharacter, text, sender, time, image);
+            }
+        }
+
+        // Get current time in HH:MM format
+        function getCurrentTime() {
+            const now = new Date();
+            return (
+                now.getHours().toString().padStart(2, "0") +
+                ":" +
+                now.getMinutes().toString().padStart(2, "0")
+            );
+        }
+        
+        // Format message with WhatsApp-style formatting
+        function formatMessage(text) {
+            text = text.replace(/```([\s\S]*?)```/g, '<div class="code-block">$1</div>');
+            // Handle inline formatting
+            text = text.replace(/\*([^*]+)\*/g, '<span class="bold">$1</span>');
+            text = text.replace(/_([^_]+)_/g, '<span class="italic">$1</span>');
+            text = text.replace(/~([^~]+)~/g, '<span class="strikethrough">$1</span>');
+            text = text.replace(/`([^`]+)`/g, '<span class="monospace">$1</span>');
+            
+            return text;
+        }
+
+        // Send message to the API
+        async function sendMessage() {
+            const input = document.getElementById("message-input");
+            const message = input.value.trim();
+
+            if (!message || !currentCharacter) return;
+
+            // Add user message to chat
+            addMessage(message, "user");
+
+            // Clear input and reset height
+            input.value = "";
+            input.style.height = 'auto';
+
+            // Show typing indicator
+            simulateTyping();
+
+            try {
+                // Call your API endpoint with session ID
+                const response = await fetch(`http://46.101.144.159:3147/${currentCharacter}`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ 
+        message: message,
+        sessionId: currentSessionId 
+    })
+});
+
+                if (!response.ok) {
+                    throw new Error("API request failed");
+                }
+
+                const data = await response.json();
+
+                // Store the session ID for future requests
+                if (data.sessionId) {
+                    currentSessionId = data.sessionId;
+                    localStorage.setItem(`session_${currentCharacter}`, data.sessionId);
+                }
+
+                // Add AI response to chat
+                addMessage(data.reply, "bot");
+
+            } catch (error) {
+                console.error("Error:", error);
+                const fallbackResponses = {
+                    naruto: "Believe it! I'm gonna be Hokage one day! What were you saying?",
+                    sasuke: "I don't have time for this. Make it quick.",
+                    sakura: "Sorry, I'm a bit busy with training right now. Can you repeat that?",
+                    kakashi: "I'm in the middle of reading an interesting book. What did you say?",
+                    jiraiya: "I'm gathering material for my next novel. Could you say that again?",
+                    gaara: "I will protect my village at all costs. What were you saying?",
+                    guy: "YOUTH! My passion is burning! Could you repeat that?",
+                    hashirama: "For the sake of peace, I will listen. What did you say?",
+                    hinata: "I-I'm sorry, could you please repeat that?",
+                    itachi: "Sometimes we must make difficult choices. What were you saying?",
+                    konan: "My paper techniques can be both beautiful and deadly. What did you say?",
+                    madara: "This world is full of lies and deception. Speak clearly!",
+                    minato: "My Flying Thunder God Technique allows me to be anywhere instantly. What did you say?",
+                    nagato: "True peace requires understanding. Could you repeat that?",
+                    neji: "The Byakugan sees all, but I didn't quite catch what you said.",
+                    obito: "In this world of lies, speak the truth. What were you saying?",
+                    orochimaru: "My research continues to uncover secrets of this world. What did you say?",
+                    rocklee: "Hard work beats talent! But I didn't quite hear what you said.",
+                    shikamaru: "What a bother... could you repeat that?",
+                    tobirama: "As Hokage, I need clear communication. What did you say?",
+                    tsunade: "I'm busy running the village. Speak clearly!"
+                };
+
+                addMessage(
+                    fallbackResponses[currentCharacter] ||
+                    "I didn't quite catch that.",
+                    "bot"
+                );
+            }
+        }
+
+        // Allow sending message with Enter key (but allow Shift+Enter for new line)
+        document
+            .getElementById("message-input")
+            .addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', initChat);
+    </script>
+</body>
+</html>
