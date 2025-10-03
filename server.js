@@ -19,6 +19,37 @@ try {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, "frontend")))
 
+function getBaseUrl(req) {
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+function startSelfPing(app) {
+  let baseUrl = null;
+  
+  app.use((req, res, next) => {
+    if (!baseUrl) {
+      baseUrl = getBaseUrl(req);
+      console.log(`Detected base URL: ${baseUrl}`);
+      startPingInterval();
+    }
+    next();
+  });
+  
+  function startPingInterval() {
+    // Ping every 5 minutes (300,000 ms)
+    setInterval(async () => {
+      try {
+        if (baseUrl) {
+          const response = await axios.get(`${baseUrl}/health`);
+          console.log(`Self-ping successful: ${response.status}`);
+        }
+      } catch (error) {
+        console.log('Self-ping failed (this is normal during initial deployment)');
+      }
+    }, 300000);
+  }
+}
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -32,6 +63,9 @@ app.use((req, res, next) => {
   app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
+
+// Start self-pinging functionality
+startSelfPing(app);
 
   app.listen(PORT, () => {
     console.log(`running on ${PORT}`);
